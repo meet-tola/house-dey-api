@@ -19,6 +19,12 @@ model User {
   username  String   @unique
   password  String
   avatar    String?
-  googleId  String? @unique
+  googleId  String?  @unique
   createdAt DateTime @default(now())
+  role      Role     @default(CLIENT)
+}
+
+enum Role {
+  AGENT
+  CLIENT
 }
