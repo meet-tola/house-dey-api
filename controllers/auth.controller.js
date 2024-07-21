@@ -1,9 +1,10 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import cookie from "cookie";
 import prisma from "../lib/prisma.js";
 
 export const register = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, role } = req.body;
 
   try {
     //Hash Password
@@ -15,6 +16,7 @@ export const register = async (req, res) => {
         username,
         email,
         password: hashedPassword,
+        role, 
       },
     });
 
@@ -29,29 +31,21 @@ export const login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    //Check existing users
-
+    // Check existing users
     const user = await prisma.user.findUnique({
       where: { username },
     });
 
     if (!user) return res.status(401).json({ message: "Invalid Credentials" });
 
-    //Check if password is correct
+    // Check if password is correct
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) return res.status(401).json({ message: "Incorrect Password" });
 
-    const isPsswordValid = await bcrypt.compare(password, user.password);
-    if (!isPsswordValid)
-      return res.status(401).json({ message: "Incorrect Password" });
-
-    //Generate cookie token and send to the user
-
-    // res.setHeader("Set-Cookie", "test=" + "myValue")
+    // Generate cookie token and send to the user
     const age = 1000 * 60 * 60 * 24 * 7;
-
     const token = jwt.sign(
-      {
-        id: user.id,
-      },
+      { id: user.id },
       process.env.JWT_SECRET_KEY,
       { expiresIn: age }
     );
@@ -59,16 +53,18 @@ export const login = async (req, res) => {
     res
       .cookie("token", token, {
         httpOnly: true,
-        // secure:true,
         maxAge: age,
+        sameSite: 'None',
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       })
       .status(200)
-      .json({ message: "Login Successful" });
+      .json({ message: "Login Successful", user, token }); // Return user data and token
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to login" });
   }
 };
+
 
 export const logout = (req, res) => {
   res.clearCookie("token").status(200).json({ message: "Logout successful" });
