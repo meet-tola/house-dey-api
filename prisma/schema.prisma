@@ -28,7 +28,7 @@ model User {
   locality  String?
   state     String?
   country   String?
-  post Post[]
+  post      Post[]
 }
 
 enum Role {
@@ -37,22 +37,23 @@ enum Role {
 }
 
 model Post {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  price     Int
-  img       String
-  address   String
-  role      Role     @default(AGENT)
-  city      String
-  bedroom   Int
-  bathroom  Int
-  latitude  String
-  longitude String
-  type      Type
-  property  Properly
-  createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id])
-  userId String @db.ObjectId
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  price      Int
+  images     String[]
+  address    String
+  role       Role        @default(AGENT)
+  city       String
+  bedroom    Int
+  bathroom   Int
+  latitude   String
+  longitude  String
+  type       Type
+  property   Property
+  createdAt  DateTime    @default(now())
+  user       User        @relation(fields: [userId], references: [id])
+  userId     String      @db.ObjectId
+  postDetail PostDetail?
 }
 
 enum Type {
@@ -60,8 +61,19 @@ enum Type {
   rent
 }
 
-enum Properly {
+enum Property {
   apartment
   house
   land
+  hostel
+}
+
+model PostDetail {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  desc      String
+  utilities String?
+  size      Int?
+  income    String?
+  post      Post    @relation(fields: [postId], references: [id])
+  postId    String  @unique @db.ObjectId
 }
