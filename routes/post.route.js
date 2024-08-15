@@ -5,6 +5,7 @@ import {
     addPost,
     updatePost,
     deletePost,
+    savePost,
   } from "../controllers/post.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -19,5 +20,7 @@ router.post("/", verifyToken, addPost)
 router.put("/:id", verifyToken, updatePost)
 
 router.delete("/:id", verifyToken, deletePost)
+
+router.post("/save", verifyToken, savePost)
 
 export default router
