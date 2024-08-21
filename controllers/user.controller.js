@@ -100,3 +100,40 @@ export const profilePosts = async (req, res) => {
     res.status(500).json({ message: "Failed to get user!" });
   }
 };
+
+export const getUserWithRoleAgent = async (req, res) => {
+  const tokenUserId = req.userId;
+
+  try {
+    const tokenUser = await prisma.user.findUnique({
+      where: { id: tokenUserId },
+    });
+
+    if (!tokenUser) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    // Fetch users with the role "AGENT"
+    const users = await prisma.user.findMany({
+      where: {
+        role: "AGENT",
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        avatar: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    res.status(200).json(users);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Failed to get users!" });
+  }
+};
+
+
+

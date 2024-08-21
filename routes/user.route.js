@@ -5,14 +5,15 @@ import {
   getUsers,
   updateUser,
   profilePosts,
+  getUserWithRoleAgent,
 } from "../controllers/user.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
 router.get("/", getUsers);
-router.get("/", verifyToken, getUser);
-// router.get("/search/:id", verifyToken, getUser);
+router.get("/agents", verifyToken, getUserWithRoleAgent); 
+router.get("/:id", verifyToken, getUser); 
 router.put("/:id", verifyToken, updateUser);
 router.delete("/:id", verifyToken, deleteUser);
 router.get("/profilePosts", verifyToken, profilePosts);
