@@ -1,49 +1,99 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
+import { v4 as uuidv4 } from "uuid";
+import nodemailer from "nodemailer";
 import prisma from "../lib/prisma.js";
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 export const register = async (req, res) => {
   const { username, email, password, role } = req.body;
 
   try {
-    //Hash Password
+    // Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = uuidv4(); 
 
-    //Create to database
     const newUser = await prisma.user.create({
       data: {
         username,
         email,
         password: hashedPassword,
-        role, 
+        role,
+        verificationToken,
+        verified: false,
       },
     });
 
-    console.log(newUser);
-    res.status(201).send("User registered successfully");
+    // Send verification email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: newUser.email,
+      subject: 'Verify your email',
+      html: `<p>Click the link to verify your email: <a href="${process.env.FRONTEND_URL}/verify/${verificationToken}">Verify Email</a></p>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(201).send("User registered successfully. Please check your email to verify your account.");
   } catch (error) {
+    console.error("Error registering user:", error);
     res.status(500).send("Error registering user");
   }
 };
+
+
+export const verifyEmail = async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: { verificationToken: token },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired verification link." });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verified: true,
+        verificationToken: null,
+      },
+    });
+
+    res.status(200).json({ message: "Email verified successfully!" });
+  } catch (error) {
+    console.error("Email verification failed:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    // Check existing users
     const user = await prisma.user.findUnique({
       where: { username },
     });
 
     if (!user) return res.status(401).json({ message: "Invalid Credentials" });
+    if (!user.verified) return res.status(401).json({ message: "Please verify your email before logging in." });
 
-    // Check if password is correct
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(401).json({ message: "Incorrect Password" });
 
-    // Generate cookie token and send to the user
-    const age = 1000 * 60 * 60 * 24 * 7;
+    const age = 1000 * 60 * 60 * 24 * 7; 
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET_KEY,
@@ -55,15 +105,17 @@ export const login = async (req, res) => {
         httpOnly: true,
         maxAge: age,
         sameSite: 'None',
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        secure: process.env.NODE_ENV === 'production', 
       })
       .status(200)
-      .json({ message: "Login Successful", user, token }); // Return user data and token
+      .json({ message: "Login Successful", user, token });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to login" });
   }
 };
+
+
 
 
 export const logout = (req, res) => {
