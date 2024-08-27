@@ -32,31 +32,50 @@ export const getPosts = async (req, res) => {
       },
     });
 
-    let userId = null;
     const token = req.cookies?.token;
 
     if (token) {
       jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
         if (!err) {
-          const saved = await prisma.savedPost.findUnique({
-            where: {
-              userId_postId: {
-                postId: id,
-                userId: payload.id,
-              },
-            },
-          });
-          return res.status(200).json({ ...posts, isSaved: saved ? true : false });
+          // Check if the user has saved each post
+          const postsWithSaveStatus = await Promise.all(
+            posts.map(async (post) => {
+              const saved = await prisma.savedPost.findUnique({
+                where: {
+                  userId_postId: {
+                    postId: post.id,
+                    userId: payload.id,
+                  },
+                },
+              });
+              return { ...post, isSaved: !!saved };
+            })
+          );
+
+          return res.status(200).json(postsWithSaveStatus);
+        } else {
+          return res.status(200).json(
+            posts.map((post) => ({
+              ...post,
+              isSaved: false,
+            }))
+          );
         }
       });
     } else {
-      return res.status(200).json({ ...posts, isSaved: false });
+      return res.status(200).json(
+        posts.map((post) => ({
+          ...post,
+          isSaved: false,
+        }))
+      );
     }
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to get posts" });
   }
 };
+
 
 
 export const getAllPosts = async (req, res) => {
