@@ -84,13 +84,20 @@ export const login = async (req, res) => {
       { expiresIn: age }
     );
 
+    const cookieOptions = {
+      httpOnly: true,
+      maxAge: age,
+      sameSite: 'None',
+      secure: process.env.NODE_ENV === 'production',
+    };
+
+    if (process.env.NODE_ENV === 'production') {
+      cookieOptions.domain = '.house-dey.vercel.app';
+    }
+
+    // Set the cookie and respond with success
     res
-      .cookie("token", token, {
-        httpOnly: true,
-        maxAge: age,
-        sameSite: 'None',
-        secure: process.env.NODE_ENV === 'production', 
-      })
+      .cookie("token", token, cookieOptions)
       .status(200)
       .json({ message: "Login Successful", user, token });
   } catch (err) {
