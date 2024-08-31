@@ -13,7 +13,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://house-dey.vercel.app" || "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://house-dey.vercel.app"],
     credentials: true,
   })
 );

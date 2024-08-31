@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
     },
   });
   
-  const FRONTEND_URL = process.env.HOSTED_URL || "http://localhost:3000";
+  const FRONTEND_URL = "http://localhost:3000" || process.env.HOSTED_URL;
 
   export const sendVerificationEmail = async (email, verificationToken) => {
     const mailOptions = {
