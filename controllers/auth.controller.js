@@ -93,14 +93,17 @@ export const login = async (req, res) => {
       expiresIn: age,
     });
 
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieOptions = {
+      httpOnly: true,
+      maxAge: age,
+      // sameSite: "None",
+      // secure: isProduction, 
+      // domain: isProduction ? ".house-dey.vercel.app" : "localhost", 
+    };
+
     res
-      .cookie("token", token, {
-        httpOnly: true,
-        maxAge: age,
-        sameSite: "Lax", 
-        secure: process.env.NODE_ENV === "production",
-      })
-      .status(200)
+      .cookie("token", token, cookieOptions)
       .json({ message: "Login Successful", user, token });
   } catch (err) {
     console.log(err);
