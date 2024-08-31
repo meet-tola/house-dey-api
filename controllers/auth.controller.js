@@ -2,16 +2,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
 import { v4 as uuidv4 } from "uuid";
-import nodemailer from "nodemailer";
 import prisma from "../lib/prisma.js";
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+import { sendVerificationEmail, sendResetPasswordEmail  } from "../email/emailService.js";
 
 export const register = async (req, res) => {
   const { username, email, password, role } = req.body;
@@ -33,14 +25,7 @@ export const register = async (req, res) => {
     });
 
     // Send verification email
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: newUser.email,
-      subject: 'Verify your email',
-      html: `<p>Click the link to verify your email: <a href="${process.env.FRONTEND_URL}/verify/${verificationToken}">Verify Email</a></p>`,
-    };
-
-    await transporter.sendMail(mailOptions);
+    await sendVerificationEmail(newUser.email, verificationToken);
 
     res.status(201).send("User registered successfully. Please check your email to verify your account.");
   } catch (error) {
@@ -48,7 +33,6 @@ export const register = async (req, res) => {
     res.status(500).send("Error registering user");
   }
 };
-
 
 export const verifyEmail = async (req, res) => {
   const { token } = req.params;
@@ -142,5 +126,72 @@ export const checkAuth = async (req, res) => {
   } catch (error) {
     console.error('Failed to check auth:', error);
     res.status(401).json({ message: "Unauthorized" });
+  }
+};
+
+export const requestPasswordReset = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const resetToken = uuidv4();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken,
+        resetTokenExpiration: new Date(Date.now() + 3600000), // 1 hour expiration
+      },
+    });
+
+    // Send password reset email
+    await sendResetPasswordEmail(user.email, resetToken);
+
+    res.status(200).json({ message: "Password reset link has been sent to your email." });
+  } catch (error) {
+    console.error("Error requesting password reset:", error);
+    res.status(500).json({ message: "Error requesting password reset" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiration: {
+          gte: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token." });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiration: null,
+      },
+    });
+
+    res.status(200).json({ message: "Password has been reset successfully." });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({ message: "Error resetting password" });
   }
 };
