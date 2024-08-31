@@ -11,9 +11,13 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = process.env.NODE_ENV === "production"
+  ? ["https://house-dey.vercel.app"]
+  : ["http://localhost:3000"];
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://house-dey.vercel.app"],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
