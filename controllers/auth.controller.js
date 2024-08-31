@@ -41,7 +41,7 @@ export const verifyEmail = async (req, res) => {
     const user = await prisma.user.findFirst({
       where: { verificationToken: token },
     });
-
+    
     if (!user) {
       return res.status(400).json({ message: "Invalid or expired verification link." });
     }

@@ -14,28 +14,29 @@ datasource db {
 }
 
 model User {
-  id                 String      @id @default(auto()) @map("_id") @db.ObjectId
-  email              String      @unique
-  username           String      @unique
-  password           String
-  avatar             String?
-  createdAt          DateTime    @default(now())
-  role               Role        @default(CLIENT)
-  firstName          String?
-  lastName           String?
-  mobile             String?
-  street             String?
-  locality           String?
-  state              String?
-  country            String?
-  verified           Boolean     @default(false)
-  verificationToken  String?
-  post               Post[]
-  savedPost          SavedPost[]
-  chats              Chat[]      @relation(fields: [chatIDs], references: [id])
-  chatIDs            String[]    @db.ObjectId
+  id                   String      @id @default(auto()) @map("_id") @db.ObjectId
+  email                String      @unique
+  username             String      @unique
+  password             String
+  avatar               String?
+  createdAt            DateTime    @default(now())
+  role                 Role        @default(CLIENT)
+  firstName            String?
+  lastName             String?
+  mobile               String?
+  street               String?
+  locality             String?
+  state                String?
+  country              String?
+  verified             Boolean     @default(false)
+  verificationToken    String?
+  resetToken           String? 
+  resetTokenExpiration DateTime? 
+  post                 Post[]
+  savedPost            SavedPost[]
+  chats                Chat[]      @relation(fields: [chatIDs], references: [id])
+  chatIDs              String[]    @db.ObjectId
 }
-
 
 enum Role {
   AGENT

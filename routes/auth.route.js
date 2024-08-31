@@ -1,11 +1,21 @@
-import express from 'express';
-import { register, login, logout, checkAuth, verifyEmail } from '../controllers/auth.controller.js';
+import express from "express";
+import {
+  register,
+  login,
+  logout,
+  checkAuth,
+  verifyEmail,
+  requestPasswordReset,
+  resetPassword,
+} from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.post('/logout', logout);
-router.get('/checkAuth', checkAuth);
-router.get('/verify/:token', verifyEmail);
+router.post("/register", register);
+router.post("/login", login);
+router.post("/logout", logout);
+router.get("/checkAuth", checkAuth);
+router.get("/verify/:token", verifyEmail);
+router.post("/request-password-reset", requestPasswordReset);
+router.post("/reset-password", resetPassword);
 export default router;
