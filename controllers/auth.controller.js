@@ -27,7 +27,7 @@ export const register = async (req, res) => {
     });
 
     // Send verification email
-    await sendVerificationEmail(newUser.email, verificationToken);
+    await sendVerificationEmail(newUser.email, newUser.username, verificationToken);
 
     res
       .status(201)
@@ -54,7 +54,7 @@ export const verifyEmail = async (req, res) => {
         .json({ message: "Invalid or expired verification link." });
     }
 
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         verified: true,
@@ -62,12 +62,21 @@ export const verifyEmail = async (req, res) => {
       },
     });
 
-    res.status(200).json({ message: "Email verified successfully!" });
+    const jwtToken = jwt.sign({ id: updatedUser.id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: '7d',  
+    });
+
+    res.status(200).json({ 
+      message: "Email verified successfully!", 
+      user: updatedUser, 
+      token: jwtToken 
+    });
   } catch (error) {
     console.error("Email verification failed:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 };
+
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
@@ -171,12 +180,12 @@ export const requestPasswordReset = async (req, res) => {
       where: { id: user.id },
       data: {
         resetToken,
-        resetTokenExpiration: new Date(Date.now() + 3600000), // 1 hour expiration
+        resetTokenExpiration: new Date(Date.now() + 3600000),
       },
     });
 
     // Send password reset email
-    await sendResetPasswordEmail(user.email, resetToken);
+    await sendResetPasswordEmail(user.email, user.username, resetToken);
 
     res
       .status(200)
