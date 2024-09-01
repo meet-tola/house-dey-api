@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import cookie from "cookie";
 import { v4 as uuidv4 } from "uuid";
 import prisma from "../lib/prisma.js";
 import {
@@ -111,8 +110,23 @@ export const login = async (req, res) => {
   }
 };
 
-export const logout = (req, res) => {
-  res.clearCookie("token").status(200).json({ message: "Logout successful" });
+export const logout = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+    res.clearCookie("token").status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Logout failed:", error);
+    res.status(401).json({ message: "Unauthorized" });
+  }
 };
 
 export const checkAuth = async (req, res) => {
