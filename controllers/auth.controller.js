@@ -116,13 +116,13 @@ export const logout = (req, res) => {
 };
 
 export const checkAuth = async (req, res) => {
-  const cookies = cookie.parse(req.headers.cookie || "");
-  const token = cookies.token;
-  console.log(token);
-
-  if (!token) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+
+  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
