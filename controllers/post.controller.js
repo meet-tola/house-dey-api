@@ -275,7 +275,8 @@ export const savePost = async (req, res) => {
       return res.status(200).json({ message: "Post saved" });
     }
   } catch (err) {
-    res.status(500).json({ message: "Failed to save post" });
+    console.log("err", err)
+    res.status(500).json({ message: "Failed to save post backend" });
   }
 };
 
