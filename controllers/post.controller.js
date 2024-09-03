@@ -7,6 +7,12 @@ export const getPosts = async (req, res) => {
   try {
     const posts = await prisma.post.findMany({
       where: {
+        address: query.address
+          ? {
+              contains: query.address,
+              mode: "insensitive",
+            }
+          : undefined,
         city: query.city
           ? {
               contains: query.city,
@@ -76,13 +82,11 @@ export const getPosts = async (req, res) => {
   }
 };
 
-
-
 export const getAllPosts = async (req, res) => {
   try {
     const posts = await prisma.post.findMany({
       include: {
-        postDetail: true, 
+        postDetail: true,
         user: {
           select: {
             username: true,
@@ -114,7 +118,6 @@ export const getPost = async (req, res) => {
         },
       },
     });
-    
 
     if (!post) {
       return res.status(404).json({ message: "Post not found!" });
@@ -133,7 +136,9 @@ export const getPost = async (req, res) => {
               },
             },
           });
-          return res.status(200).json({ ...post, isSaved: saved ? true : false });
+          return res
+            .status(200)
+            .json({ ...post, isSaved: saved ? true : false });
         }
       });
     } else {
@@ -208,10 +213,10 @@ export const deletePost = async (req, res) => {
     const post = await prisma.post.findUnique({
       where: { id },
       include: {
-        postDetail: true, 
-        savedPost: true, 
+        postDetail: true,
+        savedPost: true,
       },
-    })
+    });
 
     if (!post) {
       return res.status(404).json({ message: "Post not found!" });
@@ -245,7 +250,7 @@ export const deletePost = async (req, res) => {
 };
 
 export const savePost = async (req, res) => {
-  const postId = req.body.postId; 
+  const postId = req.body.postId;
   const tokenUserId = req.userId;
 
   try {
@@ -275,7 +280,7 @@ export const savePost = async (req, res) => {
       return res.status(200).json({ message: "Post saved" });
     }
   } catch (err) {
-    console.log("err", err)
+    console.log("err", err);
     res.status(500).json({ message: "Failed to save post backend" });
   }
 };
@@ -311,5 +316,3 @@ export const getSavedPosts = async (req, res) => {
     res.status(500).json({ message: "Failed to get saved posts" });
   }
 };
-
-
