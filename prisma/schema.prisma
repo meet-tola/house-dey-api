@@ -14,13 +14,13 @@ datasource db {
 }
 
 model User {
-  id                   String      @id @default(auto()) @map("_id") @db.ObjectId
-  email                String      @unique
-  username             String      @unique
+  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
+  email                String         @unique
+  username             String         @unique
   password             String
   avatar               String?
-  createdAt            DateTime    @default(now())
-  role                 Role        @default(CLIENT)
+  createdAt            DateTime       @default(now())
+  role                 Role           @default(CLIENT)
   firstName            String?
   lastName             String?
   mobile               String?
@@ -28,14 +28,16 @@ model User {
   locality             String?
   state                String?
   country              String?
-  verified             Boolean     @default(false)
+  verified             Boolean        @default(false)
   verificationToken    String?
-  resetToken           String? 
-  resetTokenExpiration DateTime? 
+  resetToken           String?
+  resetTokenExpiration DateTime?
   post                 Post[]
+  request              Request[]
   savedPost            SavedPost[]
-  chats                Chat[]      @relation(fields: [chatIDs], references: [id])
-  chatIDs              String[]    @db.ObjectId
+  savedRequest         SavedRequest[]
+  chats                Chat[]         @relation(fields: [chatIDs], references: [id])
+  chatIDs              String[]       @db.ObjectId
 }
 
 enum Role {
@@ -111,5 +113,35 @@ model Message {
   userId    String
   chat      Chat     @relation(fields: [chatId], references: [id])
   chatId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+}
+
+model Request {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String?
+  images        String[]
+  address       String
+  city          String
+  createdAt     DateTime       @default(now())
+  user          User           @relation(fields: [userId], references: [id])
+  userId        String         @db.ObjectId
+  requestDetail RequestDetail?
+  savedRequest  SavedRequest[]
+}
+
+model RequestDetail {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  details   String?
+  request   Request @relation(fields: [requestId], references: [id])
+  requestId String  @unique @db.ObjectId
+}
+
+model SavedRequest {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  request   Request  @relation(fields: [requestId], references: [id])
+  requestId String   @db.ObjectId
   createdAt DateTime @default(now())
 }
