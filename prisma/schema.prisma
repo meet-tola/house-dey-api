@@ -35,9 +35,9 @@ model User {
   post                 Post[]
   request              Request[]
   savedPost            SavedPost[]
-  savedRequest         SavedRequest[]
   chats                Chat[]         @relation(fields: [chatIDs], references: [id])
   chatIDs              String[]       @db.ObjectId
+  notifications        Notification[]
 }
 
 enum Role {
@@ -46,22 +46,23 @@ enum Role {
 }
 
 model Post {
-  id         String      @id @default(auto()) @map("_id") @db.ObjectId
-  title      String
-  price      Int
-  images     String[]
-  address    String
-  role       Role        @default(AGENT)
-  city       String
-  bedroom    Int
-  bathroom   Int
-  type       Type
-  property   Property
-  createdAt  DateTime    @default(now())
-  user       User        @relation(fields: [userId], references: [id])
-  userId     String      @db.ObjectId
-  postDetail PostDetail?
-  savedPost  SavedPost[]
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  price         Int
+  images        String[]
+  address       String
+  role          Role           @default(AGENT)
+  city          String
+  bedroom       Int
+  bathroom      Int
+  type          Type
+  property      Property
+  createdAt     DateTime       @default(now())
+  user          User           @relation(fields: [userId], references: [id])
+  userId        String         @db.ObjectId
+  postDetail    PostDetail?
+  savedPost     SavedPost[]
+  notifications Notification[]
 }
 
 enum Type {
@@ -119,29 +120,36 @@ model Message {
 model Request {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
   title         String
-  description   String?
-  images        String[]
   address       String
-  city          String
+  state         String?
+  city          String?
+  bedroom       String?
+  role          Role           @default(AGENT)
+  type          Type
+  property      Property
   createdAt     DateTime       @default(now())
   user          User           @relation(fields: [userId], references: [id])
   userId        String         @db.ObjectId
   requestDetail RequestDetail?
-  savedRequest  SavedRequest[]
 }
 
 model RequestDetail {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  details   String?
-  request   Request @relation(fields: [requestId], references: [id])
-  requestId String  @unique @db.ObjectId
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  comment     String?
+  budget      String
+  phoneNumber String
+  email       String?
+  request     Request @relation(fields: [requestId], references: [id])
+  requestId   String  @unique @db.ObjectId
 }
 
-model SavedRequest {
+model Notification {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   userId    String   @db.ObjectId
-  request   Request  @relation(fields: [requestId], references: [id])
-  requestId String   @db.ObjectId
-  createdAt DateTime @default(now())
+  post      Post?    @relation(fields: [postId], references: [id])
+  postId    String?  @db.ObjectId
 }

@@ -170,6 +170,7 @@ export const getUserPosts = async (req, res) => {
 export const addPost = async (req, res) => {
   const body = req.body;
   const tokenUserId = req.userId;
+  const requestId = body.requestId;  // Get the requestId from the request body
 
   try {
     const user = await prisma.user.findUnique({
@@ -189,12 +190,32 @@ export const addPost = async (req, res) => {
         },
       },
     });
+
+    // If the post is linked to a request, notify the user who made the request
+    if (requestId) {
+      const request = await prisma.request.findUnique({
+        where: { id: requestId },
+        select: { userId: true }, // Get the user ID of the request creator
+      });
+
+      if (request) {
+        await prisma.notification.create({
+          data: {
+            message: `A new listing has been created for your request: ${newPost.title}`,
+            userId: request.userId,
+            postId: newPost.id, // Include the post ID in the notification
+          },
+        });
+      }
+    }
+
     res.status(200).json(newPost);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to create post" });
   }
 };
+
 
 export const updatePost = async (req, res) => {
   try {

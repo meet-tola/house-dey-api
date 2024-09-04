@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import authRoute from "./routes/auth.route.js";
 import postRoute from "./routes/post.route.js";
+import requestRoute from "./routes/request.route.js";
+import notificationRoute from "./routes/notification.route.js";
 import userRoute from "./routes/user.route.js";
 import chatRoute from "./routes/chat.route.js";
 import messageRoute from "./routes/message.route.js";
@@ -11,9 +13,10 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins = process.env.NODE_ENV === "production"
-  ? ["https://house-dey.vercel.app"]
-  : ["http://localhost:3000"];
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? ["https://house-dey.vercel.app"]
+    : ["http://localhost:3000"];
 
 app.use(
   cors({
@@ -24,9 +27,11 @@ app.use(
 
 app.use(express.json());
 
-app.use("/api/posts", postRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
+app.use("/api/posts", postRoute);
+app.use("/api/requests", requestRoute);
+app.use("/api/notifications", notificationRoute);
 app.use("/api/chats", chatRoute);
 app.use("/api/messages", messageRoute);
 
