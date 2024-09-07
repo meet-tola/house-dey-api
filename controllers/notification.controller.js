@@ -9,7 +9,7 @@ export const getNotifications = async (req, res) => {
           userId: tokenUserId,
         },
         include: {
-          post: true, // Include post details if needed
+          post: true,
         },
         orderBy: {
           createdAt: 'desc',

@@ -170,7 +170,7 @@ export const getUserPosts = async (req, res) => {
 export const addPost = async (req, res) => {
   const body = req.body;
   const tokenUserId = req.userId;
-  const requestId = body.requestId;  // Get the requestId from the request body
+  const requestId = req.query.requestId; // Get the requestId from query params
 
   try {
     const user = await prisma.user.findUnique({
@@ -202,6 +202,8 @@ export const addPost = async (req, res) => {
         await prisma.notification.create({
           data: {
             message: `A new listing has been created for your request: ${newPost.title}`,
+            description: "The house properties you were looking for is now available. Click on the notification, to view.",
+            type: "listing",
             userId: request.userId,
             postId: newPost.id, // Include the post ID in the notification
           },
@@ -218,8 +220,28 @@ export const addPost = async (req, res) => {
 
 
 export const updatePost = async (req, res) => {
+  const id = req.params.id;
+  const tokenUserId = req.userId;
+
   try {
-    res.status(200).json();
+    const updatedPost = await prisma.post.update({
+      where: { id },
+      data: {
+        ...body,
+        postDetail: {
+          update: body.postDetail,
+        },
+      },
+    });
+    if (!updatedPost) {
+      return res.status(404).json({ message: "Post not found!" });
+    }
+
+    if (updatedPost.userId !== tokenUserId) {
+      return res.status(403).json({ message: "Not Authorised!" });
+    }
+
+    res.status(200).json(updatedPost);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to edit posts" });
