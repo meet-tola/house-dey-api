@@ -15,7 +15,7 @@ const app = express();
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? ["https://house-dey.vercel.app"]
+    ? ["https://www.housedey.com.ng"]
     : ["http://localhost:3000"];
 
 app.use(
