@@ -1,29 +1,66 @@
 import prisma from "../lib/prisma.js";
-import jwt from "jsonwebtoken";
 
 export const getRequests = async (req, res) => {
-  const query = req.query;
+  const { searchQuery, city, state, minBudget, maxBudget, type, property } = req.query;
 
   try {
     const requests = await prisma.request.findMany({
       where: {
-        address: query.address
+        OR: searchQuery
+          ? [
+              {
+                address: {
+                  contains: searchQuery,
+                  mode: "insensitive",
+                },
+              },
+              {
+                city: {
+                  contains: searchQuery,
+                  mode: "insensitive",
+                },
+              },
+              {
+                state: {
+                  contains: searchQuery,
+                  mode: "insensitive",
+                },
+              },
+              {
+                type: {
+                  contains: searchQuery,
+                  mode: "insensitive",
+                },
+              },
+            ]
+          : undefined,
+        city: city
           ? {
-              contains: query.address,
+              contains: city,
               mode: "insensitive",
             }
           : undefined,
-        city: query.city
+        state: state
           ? {
-              contains: query.city,
+              contains: state,
               mode: "insensitive",
             }
           : undefined,
-        status: query.status
-          ? {
-              equals: query.status,
-            }
-          : undefined,
+        budget: {
+          gte: minBudget ? parseFloat(minBudget) : undefined,
+          lte: maxBudget ? parseFloat(maxBudget) : undefined,
+        },
+        type: type ? { equals: type } : undefined,
+        property: property ? { equals: property } : undefined,
+      },
+      include: {
+        requestDetail: true,
+        user: {
+          select: {
+            username: true,
+            avatar: true,
+          },
+        },
       },
     });
 
@@ -33,6 +70,7 @@ export const getRequests = async (req, res) => {
     res.status(500).json({ message: "Failed to get requests" });
   }
 };
+
 
 export const getAllRequests = async (req, res) => {
   try {
