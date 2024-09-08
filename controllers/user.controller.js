@@ -31,7 +31,18 @@ export const updateUser = async (req, res) => {
   if (id !== tokenUserId) {
     return res.status(403).json({ message: "Not Authorized!" });
   }
-  const { password, avatar, firstName, lastName, mobile, street, locality, state, country, ...inputs } = req.body;
+  const {
+    password,
+    avatar,
+    firstName,
+    lastName,
+    mobile,
+    street,
+    locality,
+    state,
+    country,
+    ...inputs
+  } = req.body;
 
   let updatedPassword = null;
   try {
@@ -90,11 +101,11 @@ export const profilePosts = async (req, res) => {
       where: { userId: tokenUserId },
       include: {
         post: true,
-      }
+      },
     });
 
-    const savedPosts = saved.map(item=>item.post)
-    res.status(200).json({userPosts, savedPosts});
+    const savedPosts = saved.map((item) => item.post);
+    res.status(200).json({ userPosts, savedPosts });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to get user!" });
@@ -135,5 +146,56 @@ export const getUserWithRoleAgent = async (req, res) => {
   }
 };
 
+export const getAgentWithPosts = async (req, res) => {
+  const tokenUserId = req.userId;
+  const agentId = req.params.id;
 
+  try {
+    const tokenUser = await prisma.user.findUnique({
+      where: { id: tokenUserId },
+    });
 
+    if (!tokenUser) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    const agent = await prisma.user.findUnique({
+      where: {
+        id: agentId,
+        role: "AGENT",
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        avatar: true,
+        firstName: true,
+        lastName: true,
+        mobile: true,
+        locality: true,
+        post: {
+          select: {
+            id: true,
+            title: true,
+            images: true,
+            address: true,
+            property: true,
+            type: true,
+            price: true,
+          },
+        },
+      },
+    });
+
+    if (!agent) {
+      return res
+        .status(404)
+        .json({ message: "Agent not found or not an agent!" });
+    }
+
+    res.status(200).json(agent);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Failed to get agent and posts!" });
+  }
+};
