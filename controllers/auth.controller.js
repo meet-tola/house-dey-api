@@ -27,7 +27,11 @@ export const register = async (req, res) => {
     });
 
     // Send verification email
-    await sendVerificationEmail(newUser.email, newUser.username, verificationToken);
+    await sendVerificationEmail(
+      newUser.email,
+      newUser.username,
+      verificationToken
+    );
 
     res
       .status(201)
@@ -62,14 +66,43 @@ export const verifyEmail = async (req, res) => {
       },
     });
 
-    const jwtToken = jwt.sign({ id: updatedUser.id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: '7d',  
-    });
+    const jwtToken = jwt.sign(
+      { id: updatedUser.id },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "7d",
+      }
+    );
 
-    res.status(200).json({ 
-      message: "Email verified successfully!", 
-      user: updatedUser, 
-      token: jwtToken 
+    if (user.role === "AGENT") {
+      const notification = {
+        message: "Welcome to HouseDey, update your profile.",
+        description:
+          "You have signed up as an agent, kindly please update your profile for better visibility.",
+        type: "profile",
+        userId: user.id,
+        postId: "",
+      };
+
+      await prisma.notification.create({
+        data: notification,
+      });
+
+      const backendURL =
+        process.env.NODE_ENV === "production"
+          ? process.env.NOTIFICATION_SOCKET_URL
+          : "http://localhost:4000";
+
+      await axios.post(`${backendURL}/emitNotification`, {
+        userId: user.id, 
+        notification,
+      });
+    }
+
+    res.status(200).json({
+      message: "Email verified successfully!",
+      user: updatedUser,
+      token: jwtToken,
     });
   } catch (error) {
     console.error("Email verification failed:", error);
@@ -106,8 +139,8 @@ export const login = async (req, res) => {
       httpOnly: true,
       maxAge: age,
       sameSite: "Strict",
-      secure: isProduction, 
-      domain: isProduction ? ".house-dey.vercel.app" : "localhost", 
+      secure: isProduction,
+      domain: isProduction ? ".house-dey.vercel.app" : "localhost",
     };
 
     res
@@ -121,7 +154,7 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   const authHeader = req.headers.authorization;
-  
+
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -140,7 +173,7 @@ export const logout = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
   const authHeader = req.headers.authorization;
-  
+
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Unauthorized" });
   }
