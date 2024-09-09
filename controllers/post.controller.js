@@ -1,6 +1,6 @@
 import prisma from "../lib/prisma.js";
 import jwt from "jsonwebtoken";
-
+import axios from 'axios';
 export const getPosts = async (req, res) => {
   const query = req.query;
 
@@ -170,7 +170,7 @@ export const getUserPosts = async (req, res) => {
 export const addPost = async (req, res) => {
   const body = req.body;
   const tokenUserId = req.userId;
-  const requestId = req.query.requestId; // Get the requestId from query params
+  const requestId = req.query.requestId;
 
   try {
     const user = await prisma.user.findUnique({
@@ -191,22 +191,34 @@ export const addPost = async (req, res) => {
       },
     });
 
-    // If the post is linked to a request, notify the user who made the request
     if (requestId) {
       const request = await prisma.request.findUnique({
         where: { id: requestId },
-        select: { userId: true }, // Get the user ID of the request creator
+        select: { userId: true }, 
       });
 
       if (request) {
+        const notification = {
+          message: `A new listing has been created for your request: ${newPost.title}`,
+          description:
+            "The house properties you were looking for is now available. Click on the notification to view.",
+          type: "listing",
+          userId: request.userId,
+          postId: newPost.id, 
+        };
+
         await prisma.notification.create({
-          data: {
-            message: `A new listing has been created for your request: ${newPost.title}`,
-            description: "The house properties you were looking for is now available. Click on the notification, to view.",
-            type: "listing",
-            userId: request.userId,
-            postId: newPost.id, // Include the post ID in the notification
-          },
+          data: notification,
+        });
+
+        const backendURL =
+          process.env.NODE_ENV === "production"
+            ? process.env.NOTIFICATION_SOCKET_URL
+            : "http://localhost:4000";
+
+        await axios.post(`${backendURL}/emitNotification`, {
+          userId: request.userId,
+          notification, 
         });
       }
     }
