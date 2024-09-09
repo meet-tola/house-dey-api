@@ -81,7 +81,6 @@ export const verifyEmail = async (req, res) => {
           "You have signed up as an agent, kindly please update your profile for better visibility.",
         type: "profile",
         userId: user.id,
-        postId: "",
       };
 
       await prisma.notification.create({
