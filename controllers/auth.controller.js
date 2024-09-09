@@ -6,6 +6,7 @@ import {
   sendVerificationEmail,
   sendResetPasswordEmail,
 } from "../email/emailService.js";
+import axios from 'axios';
 
 export const register = async (req, res) => {
   const { username, email, password, role } = req.body;
