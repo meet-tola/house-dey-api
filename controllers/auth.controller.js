@@ -138,9 +138,9 @@ export const login = async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       maxAge: age,
-      sameSite: "Strict",
+      sameSite: "None",
       secure: isProduction,
-      domain: isProduction ? ".house-dey.vercel.app" : "localhost",
+      domain: isProduction ? ".house-dey.ng" : "localhost",
     };
 
     res
