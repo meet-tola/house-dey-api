@@ -167,10 +167,7 @@ export const logout = async (req, res) => {
 
     res
       .clearCookie("token", {
-        domain: isProduction ? ".house-dey.ng" : "localhost",
         path: "/",
-        secure: isProduction,
-        sameSite: "None",
       })
       .status(200)
       .json({ message: "Logout successful" });
