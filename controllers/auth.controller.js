@@ -6,7 +6,7 @@ import {
   sendVerificationEmail,
   sendResetPasswordEmail,
 } from "../email/emailService.js";
-import axios from 'axios';
+import axios from "axios";
 
 export const register = async (req, res) => {
   const { username, email, password, role } = req.body;
@@ -94,7 +94,7 @@ export const verifyEmail = async (req, res) => {
           : "http://localhost:4000";
 
       await axios.post(`${backendURL}/emitNotification`, {
-        userId: user.id, 
+        userId: user.id,
         notification,
       });
     }
@@ -109,7 +109,6 @@ export const verifyEmail = async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 };
-
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
@@ -164,7 +163,17 @@ export const logout = async (req, res) => {
   try {
     jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    res.clearCookie("token").status(200).json({ message: "Logout successful" });
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res
+      .clearCookie("token", {
+        domain: isProduction ? ".house-dey.ng" : "localhost",
+        path: "/",
+        secure: isProduction,
+        sameSite: "None",
+      })
+      .status(200)
+      .json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout failed:", error);
     res.status(401).json({ message: "Unauthorized" });
