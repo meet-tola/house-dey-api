@@ -133,13 +133,11 @@ export const login = async (req, res) => {
       expiresIn: age,
     });
 
-    const isProduction = process.env.NODE_ENV === "production";
     const cookieOptions = {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge: age,
-      sameSite: "None",
-      secure: isProduction,
-      domain: isProduction ? ".house-dey.ng" : "localhost",
     };
 
     res
@@ -161,16 +159,8 @@ export const logout = async (req, res) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET_KEY);
-
-    const isProduction = process.env.NODE_ENV === "production";
-
-    res
-      .clearCookie("token", {
-        path: "/",
-      })
-      .status(200)
-      .json({ message: "Logout successful" });
+    res.clearCookie(token);
+    res.status(200).json({ success: true, message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout failed:", error);
     res.status(401).json({ message: "Unauthorized" });
