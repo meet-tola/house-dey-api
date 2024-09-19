@@ -34,8 +34,7 @@ export const updateUser = async (req, res) => {
   const {
     password,
     avatar,
-    firstName,
-    lastName,
+    fullName,
     mobile,
     street,
     locality,
@@ -56,8 +55,7 @@ export const updateUser = async (req, res) => {
         ...inputs,
         ...(updatedPassword && { password: updatedPassword }),
         ...(avatar && { avatar }),
-        ...(firstName && { firstName }),
-        ...(lastName && { lastName }),
+        ...(fullName && { fullName }),
         ...(mobile && { mobile }),
         ...(street && { street }),
         ...(locality && { locality }),
@@ -91,24 +89,6 @@ export const deleteUser = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to delete users!" });
-  }
-};
-
-export const profilePosts = async (req, res) => {
-  const tokenUserId = req.params.id;
-  try {
-    const userPosts = await prisma.post.findUnique({
-      where: { userId: tokenUserId },
-      include: {
-        post: true,
-      },
-    });
-
-    const savedPosts = saved.map((item) => item.post);
-    res.status(200).json({ userPosts, savedPosts });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Failed to get user!" });
   }
 };
 
@@ -197,5 +177,41 @@ export const getAgentWithPosts = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to get agent and posts!" });
+  }
+};
+
+export const verifyAgentId = async (req, res) => {
+  const { userId, imageUrl } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role !== "AGENT") {
+      return res.status(403).json({ message: "User is not an agent" });
+    }
+
+    const verificationData = {
+      verificationImage: imageUrl || null,
+      verificationStatus: imageUrl ? true : false,
+    };
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: verificationData,
+    });
+
+    res.status(200).json({
+      message: "Agent ID verification updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error verifying agent ID:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

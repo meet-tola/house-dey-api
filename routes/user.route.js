@@ -4,7 +4,7 @@ import {
   getUser,
   getUsers,
   updateUser,
-  profilePosts,
+  verifyAgentId,
   getUserWithRoleAgent,
   getAgentWithPosts
 } from "../controllers/user.controller.js";
@@ -18,6 +18,6 @@ router.get("/agent/:id", verifyToken, getAgentWithPosts);
 router.get("/:id", verifyToken, getUser); 
 router.put("/:id", verifyToken, updateUser);
 router.delete("/:id", verifyToken, deleteUser);
-router.get("/profilePosts", verifyToken, profilePosts);
+router.put("/verify/agent", verifyToken, verifyAgentId);
 
 export default router;
