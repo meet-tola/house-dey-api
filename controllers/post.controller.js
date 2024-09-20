@@ -112,6 +112,7 @@ export const getPost = async (req, res) => {
         user: {
           select: {
             id: true,
+            fullName: true,
             username: true,
             avatar: true,
           },
