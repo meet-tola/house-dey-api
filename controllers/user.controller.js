@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma.js";
 import bcrypt from "bcrypt";
+import axios from "axios";
 
 export const getUsers = async (req, res) => {
   try {
