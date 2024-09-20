@@ -32,7 +32,7 @@ model User {
   resetToken           String?
   resetTokenExpiration DateTime?
   verificationImage    String?
-  verificationStatus   Boolean?       @default(false)
+  verificationStatus   VerificationStatus @default(unverified)
   post                 Post[]
   request              Request[]
   savedPost            SavedPost[]
@@ -40,6 +40,14 @@ model User {
   chatIDs              String[]       @db.ObjectId
   notifications        Notification[]
 }
+
+enum VerificationStatus {
+  unverified
+  pending
+  approved
+  rejected
+}
+
 
 enum Role {
   AGENT

@@ -199,7 +199,7 @@ export const addPost = async (req, res) => {
 
       if (request) {
         const notification = {
-          message: `A new listing has been created for your request: ${newPost.title}`,
+          message: `New listing for your request: ${newPost.title}`,
           description:
             "The house properties you were looking for is now available. Click on the notification to view.",
           type: "listing",

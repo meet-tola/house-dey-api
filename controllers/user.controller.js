@@ -198,7 +198,7 @@ export const verifyAgentId = async (req, res) => {
 
     const verificationData = {
       verificationImage: imageUrl || null,
-      verificationStatus: imageUrl ? true : false,
+      verificationStatus: imageUrl ? "pending" : user.verificationStatus,
     };
 
     const updatedUser = await prisma.user.update({
@@ -206,8 +206,32 @@ export const verifyAgentId = async (req, res) => {
       data: verificationData,
     });
 
+    if (user.role === "AGENT") {
+      const notification = {
+        message: "Pending ID Verification",
+        description:
+          "You have successfully upload a docmuent, you will recieved a message before 24hours.",
+        type: "id",
+        userId: user.id,
+      };
+
+      await prisma.notification.create({
+        data: notification,
+      });
+
+      const backendURL =
+        process.env.NODE_ENV === "production"
+          ? process.env.NOTIFICATION_SOCKET_URL
+          : "http://localhost:4000";
+
+      await axios.post(`${backendURL}/emitNotification`, {
+        userId: user.id,
+        notification,
+      });
+    }
+
     res.status(200).json({
-      message: "Agent ID verification updated successfully",
+      message: "Agent ID verification is pending",
       user: updatedUser,
     });
   } catch (error) {
@@ -215,3 +239,4 @@ export const verifyAgentId = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
