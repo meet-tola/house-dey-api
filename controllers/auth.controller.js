@@ -14,7 +14,9 @@ export const register = async (req, res) => {
   try {
     // Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = uuidv4();
+    const verificationToken = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
     const newUser = await prisma.user.create({
       data: {
@@ -23,7 +25,7 @@ export const register = async (req, res) => {
         password: hashedPassword,
         role,
         verificationToken,
-        verified: false,
+        verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       },
     });
 
@@ -46,17 +48,27 @@ export const register = async (req, res) => {
 };
 
 export const verifyEmail = async (req, res) => {
-  const { token } = req.params;
+  const { code } = req.body;
 
+  if (!code) {
+    throw new Error("Invalid code, please check and try again.");
+  }
   try {
+    const currentDateTime = new Date().toISOString();
     const user = await prisma.user.findFirst({
-      where: { verificationToken: token },
+      where: {
+        verificationToken: code,
+        verificationTokenExpiresAt: {
+          gt: currentDateTime,
+        },
+      },
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({ message: "Invalid or expired verification link." });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code",
+      });
     }
 
     const updatedUser = await prisma.user.update({
@@ -64,6 +76,7 @@ export const verifyEmail = async (req, res) => {
       data: {
         verified: true,
         verificationToken: null,
+        verificationTokenExpiresAt: null,
       },
     });
 

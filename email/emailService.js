@@ -39,9 +39,8 @@ const compileTemplate = async (templatePath, data) => {
 
 export const sendVerificationEmail = async (email, username, verificationToken) => {
   const templatePath = path.resolve("email", "verificationEmail.html");
-  const verificationLink = `${FRONTEND_URL}/verify/${verificationToken}`;
 
-  const htmlContent = await compileTemplate(templatePath, { username, verificationLink });
+  const htmlContent = await compileTemplate(templatePath, { username, verificationToken });
 
   const mailOptions = {
     from: process.env.EMAIL_USER,

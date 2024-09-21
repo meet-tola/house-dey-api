@@ -14,31 +14,32 @@ datasource db {
 }
 
 model User {
-  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
-  email                String         @unique
-  username             String         @unique
-  password             String
-  avatar               String?
-  createdAt            DateTime       @default(now())
-  role                 Role           @default(CLIENT)
-  fullName             String?
-  mobile               String?
-  street               String?
-  locality             String?
-  state                String?
-  country              String?
-  verified             Boolean        @default(false)
-  verificationToken    String?
-  resetToken           String?
-  resetTokenExpiration DateTime?
-  verificationImage    String?
-  verificationStatus   VerificationStatus @default(unverified)
-  post                 Post[]
-  request              Request[]
-  savedPost            SavedPost[]
-  chats                Chat[]         @relation(fields: [chatIDs], references: [id])
-  chatIDs              String[]       @db.ObjectId
-  notifications        Notification[]
+  id                         String             @id @default(auto()) @map("_id") @db.ObjectId
+  email                      String             @unique
+  username                   String             @unique
+  password                   String
+  avatar                     String?
+  createdAt                  DateTime           @default(now())
+  role                       Role               @default(CLIENT)
+  fullName                   String?
+  mobile                     String?
+  street                     String?
+  locality                   String?
+  state                      String?
+  country                    String?
+  verified                   Boolean            @default(false)
+  verificationToken          String?
+  verificationTokenExpiresAt DateTime?
+  resetToken                 String?
+  resetTokenExpiration       DateTime?
+  verificationImage          String?
+  verificationStatus         VerificationStatus @default(unverified)
+  post                       Post[]
+  request                    Request[]
+  savedPost                  SavedPost[]
+  chats                      Chat[]             @relation(fields: [chatIDs], references: [id])
+  chatIDs                    String[]           @db.ObjectId
+  notifications              Notification[]
 }
 
 enum VerificationStatus {
@@ -47,7 +48,6 @@ enum VerificationStatus {
   approved
   rejected
 }
-
 
 enum Role {
   AGENT
