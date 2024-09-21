@@ -9,7 +9,7 @@ import {
 import axios from "axios";
 
 export const register = async (req, res) => {
-  const { username, email, password, role } = req.body;
+  const { fullName, username, mobile, email, password, role } = req.body;
 
   try {
     const existingUser = await prisma.user.findFirst({
@@ -38,8 +38,10 @@ export const register = async (req, res) => {
     // Create the new user
     const newUser = await prisma.user.create({
       data: {
+        fullName,
         username,
         email,
+        mobile,
         password: hashedPassword,
         role,
         verificationToken,
