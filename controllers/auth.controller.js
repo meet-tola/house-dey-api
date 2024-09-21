@@ -12,11 +12,30 @@ export const register = async (req, res) => {
   const { username, email, password, role } = req.body;
 
   try {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: email },
+          { username: username },
+        ],
+      },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email or username already exists. Please try a different one.",
+      });
+    }
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate a verification token
     const verificationToken = Math.floor(
       10000 + Math.random() * 90000
     ).toString();
 
+    // Create the new user
     const newUser = await prisma.user.create({
       data: {
         username,
@@ -24,10 +43,11 @@ export const register = async (req, res) => {
         password: hashedPassword,
         role,
         verificationToken,
-        verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
       },
     });
 
+    // Send verification email
     await sendVerificationEmail(
       newUser.email,
       newUser.username,
@@ -44,6 +64,7 @@ export const register = async (req, res) => {
     res.status(500).send("Error registering user");
   }
 };
+
 
 export const verifyEmail = async (req, res) => {
   const { code, userId } = req.body;
