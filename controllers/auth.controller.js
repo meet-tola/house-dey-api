@@ -15,7 +15,7 @@ export const register = async (req, res) => {
     // Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = Math.floor(
-      100000 + Math.random() * 900000
+      10000 + Math.random() * 90000
     ).toString();
 
     const newUser = await prisma.user.create({
@@ -50,9 +50,6 @@ export const register = async (req, res) => {
 export const verifyEmail = async (req, res) => {
   const { code } = req.body;
 
-  if (!code) {
-    throw new Error("Invalid code, please check and try again.");
-  }
   try {
     const currentDateTime = new Date().toISOString();
     const user = await prisma.user.findFirst({
