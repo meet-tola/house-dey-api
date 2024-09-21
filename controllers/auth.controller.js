@@ -12,7 +12,6 @@ export const register = async (req, res) => {
   const { username, email, password, role } = req.body;
 
   try {
-    // Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = Math.floor(
       10000 + Math.random() * 90000
@@ -29,18 +28,17 @@ export const register = async (req, res) => {
       },
     });
 
-    // Send verification email
     await sendVerificationEmail(
       newUser.email,
       newUser.username,
       verificationToken
     );
 
-    res
-      .status(201)
-      .send(
-        "User registered successfully. Please check your email to verify your account."
-      );
+    res.status(201).json({
+      message:
+        "User registered successfully. Please verify your email to complete the registration.",
+      userId: newUser.id,
+    });
   } catch (error) {
     console.error("Error registering user:", error);
     res.status(500).send("Error registering user");
@@ -48,23 +46,33 @@ export const register = async (req, res) => {
 };
 
 export const verifyEmail = async (req, res) => {
-  const { code } = req.body;
+  const { code, userId } = req.body;
 
   try {
-    const currentDateTime = new Date().toISOString();
-    const user = await prisma.user.findFirst({
-      where: {
-        verificationToken: code,
-        verificationTokenExpiresAt: {
-          gt: currentDateTime,
-        },
-      },
+    const currentDateTime = new Date();
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: "Invalid or expired verification code",
+        message: "User not found",
+      });
+    }
+
+    if (user.verificationToken !== code) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid verification code.",
+      });
+    }
+
+    if (user.verificationTokenExpiresAt < currentDateTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Verification code has expired.",
       });
     }
 
@@ -77,17 +85,13 @@ export const verifyEmail = async (req, res) => {
       },
     });
 
-    const jwtToken = jwt.sign(
-      { id: updatedUser.id },
-      process.env.JWT_SECRET_KEY,
-      {
-        expiresIn: "7d",
-      }
-    );
+    const token = jwt.sign({ id: updatedUser.id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "7d",
+    });
 
     if (user.role === "AGENT") {
       const notification = {
-        message: "Welcome to HouseDey, update your profile.",
+        message: "Welcome to HouseDey, profile update.",
         description:
           "You have signed up as an agent, kindly please update your profile for better visibility.",
         type: "profile",
@@ -112,7 +116,7 @@ export const verifyEmail = async (req, res) => {
     res.status(200).json({
       message: "Email verified successfully!",
       user: updatedUser,
-      token: jwtToken,
+      token: token,
     });
   } catch (error) {
     console.error("Email verification failed:", error);
