@@ -14,7 +14,6 @@ export const sendVerificationSMS = async (to, token) => {
       from: process.env.TWILIO_PHONE_NUMBER,
       to: to, 
     });
-    console.log("SMS sent:", message.body);
   } catch (error) {
     console.error("Failed to send SMS:", error);
   }
