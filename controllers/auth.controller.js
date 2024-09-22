@@ -6,6 +6,7 @@ import {
   sendVerificationEmail,
   sendResetPasswordEmail,
 } from "../email/emailService.js";
+import { sendVerificationSMS } from "../twilio/twilioService.js";
 import axios from "axios";
 
 export const register = async (req, res) => {
@@ -14,10 +15,7 @@ export const register = async (req, res) => {
   try {
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email: email },
-          { username: username },
-        ],
+        OR: [{ email: email }, { username: username }],
       },
     });
 
@@ -31,9 +29,7 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate a verification token
-    const verificationToken = Math.floor(
-      10000 + Math.random() * 90000
-    ).toString();
+    const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
 
     // Create the new user
     const newUser = await prisma.user.create({
@@ -50,15 +46,13 @@ export const register = async (req, res) => {
     });
 
     // Send verification email
-    await sendVerificationEmail(
-      newUser.email,
-      newUser.username,
-      verificationToken
-    );
+    await sendVerificationEmail(newUser.email, newUser.username, verificationToken);
+
+    // Send verification SMS
+    await sendVerificationSMS(newUser.mobile, verificationToken);
 
     res.status(201).json({
-      message:
-        "User registered successfully. Please verify your email to complete the registration.",
+      message: "User registered successfully. Please verify your email or SMS to complete the registration.",
       userId: newUser.id,
     });
   } catch (error) {

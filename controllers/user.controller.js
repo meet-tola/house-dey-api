@@ -83,6 +83,10 @@ export const deleteUser = async (req, res) => {
   }
 
   try {
+    await prisma.notification.deleteMany({
+      where: { userId: id },
+    });
+
     await prisma.user.delete({
       where: { id },
     });
