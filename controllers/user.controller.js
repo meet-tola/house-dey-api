@@ -133,7 +133,7 @@ export const getUserWithRoleAgent = async (req, res) => {
 
 export const getAgentWithPosts = async (req, res) => {
   const tokenUserId = req.userId;
-  const agentId = req.params.id;
+  const agentUsername = req.params.username; 
 
   try {
     const tokenUser = await prisma.user.findUnique({
@@ -146,7 +146,7 @@ export const getAgentWithPosts = async (req, res) => {
 
     const agent = await prisma.user.findUnique({
       where: {
-        id: agentId,
+        username: agentUsername, // Search by username
         role: "AGENT",
       },
       select: {
@@ -154,8 +154,7 @@ export const getAgentWithPosts = async (req, res) => {
         username: true,
         email: true,
         avatar: true,
-        firstName: true,
-        lastName: true,
+        fullName: true,
         mobile: true,
         locality: true,
         post: {
