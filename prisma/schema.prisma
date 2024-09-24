@@ -162,3 +162,13 @@ model Notification {
   post   Post?   @relation(fields: [postId], references: [id])
   postId String? @db.ObjectId
 }
+
+model SupportRequest {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+}
+

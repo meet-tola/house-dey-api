@@ -7,6 +7,7 @@ import notificationRoute from "./routes/notification.route.js";
 import userRoute from "./routes/user.route.js";
 import chatRoute from "./routes/chat.route.js";
 import messageRoute from "./routes/message.route.js";
+import supportRoute from "./routes/support.route.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -34,6 +35,7 @@ app.use("/api/requests", requestRoute);
 app.use("/api/notifications", notificationRoute);
 app.use("/api/chats", chatRoute);
 app.use("/api/messages", messageRoute);
+app.use("/api/customer", supportRoute);
 
 const PORT = process.env.PORT || 8800;
 app.listen(PORT, () => {
