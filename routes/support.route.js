@@ -1,5 +1,5 @@
 import express from "express";
-import { submitSupportRequest } from "../controllers/supportController.js";
+import { submitSupportRequest } from "../controllers/support.controller.js";
 
 const router = express.Router();
 
