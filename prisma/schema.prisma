@@ -129,7 +129,6 @@ model Message {
 model Request {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
   title         String
-  address       String
   type          Type
   property      Property
   budget        Int
