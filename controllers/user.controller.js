@@ -119,7 +119,7 @@ export const getUserWithRoleAgent = async (req, res) => {
         username: true,
         email: true,
         avatar: true,
-        firstName: true,
+        fullName: true,
         lastName: true,
       },
     });
