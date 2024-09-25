@@ -30,7 +30,7 @@ export const submitSupportRequest = async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      from: process.env.EMAIL_USER,
+      to: "ofonagorochisom81@gmail.com",
       subject: `Support Request: ${subject}`,
       html: `
         <h3>New Complain Request</h3>
