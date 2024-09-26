@@ -3,7 +3,7 @@ import prisma from "../lib/prisma.js";
 // Get all reviews for an agent by agentId
 export const getReviewsByAgent = async (req, res) => {
   const { agentId } = req.params;
-  
+
   try {
     const reviews = await prisma.review.findMany({
       where: { agentId },
@@ -19,7 +19,17 @@ export const getReviewsByAgent = async (req, res) => {
         },
       },
     });
-    res.status(200).json(reviews);
+
+    // Calculate total number of reviews and average rating
+    const totalReviews = reviews.length;
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalReviews > 0 ? totalRating / totalReviews : 0;
+
+    res.status(200).json({
+      totalReviews,
+      averageRating: averageRating.toFixed(2), // Round to 2 decimal places
+      reviews,
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to get reviews!" });
@@ -29,7 +39,7 @@ export const getReviewsByAgent = async (req, res) => {
 // Get all reviews created by a user
 export const getReviewsByUser = async (req, res) => {
   const { userId } = req.params;
-  
+
   try {
     const reviews = await prisma.review.findMany({
       where: { userId },
@@ -81,7 +91,9 @@ export const updateReview = async (req, res) => {
     });
 
     if (!existingReview || existingReview.userId !== userId) {
-      return res.status(403).json({ message: "Not authorized to update this review!" });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this review!" });
     }
 
     const updatedReview = await prisma.review.update({
@@ -109,7 +121,9 @@ export const deleteReview = async (req, res) => {
     });
 
     if (!existingReview || existingReview.userId !== userId) {
-      return res.status(403).json({ message: "Not authorized to delete this review!" });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this review!" });
     }
 
     await prisma.review.delete({
