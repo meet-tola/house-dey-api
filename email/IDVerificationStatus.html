@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ID Verification Status</title>
+  <style>
+    /* Ensure images scale correctly */
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Dark mode detection and white logo filter */
+    @media (prefers-color-scheme: dark) {
+      img.logo {
+        filter: brightness(0) invert(1); /* Makes the logo white in dark mode */
+      }
+    }
+  </style>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <img src="https://res.cloudinary.com/dvvirefzi/image/upload/v1725230325/housedey_mccque.png" alt="Logo" class="logo" style="max-width: 150px;">
+  </div>
+
+  <div style="background-color: #0f084e; color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 32px;">
+    ID Verification Status
+  </div>
+
+  <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <p>Hello, {{username}}!</p>
+
+    {{#if (eq verificationStatus "approved")}}
+      <p>Congratulations! Your ID verification has been <strong>approved</strong>. You are now fully verified.</p>
+    {{else if (eq verificationStatus "rejected")}}
+      <p>Unfortunately, your ID verification was <strong>rejected</strong>. Please check the details of your submission and re-upload the correct document.</p>
+    {{else}}
+      <p>Your ID verification document has been successfully uploaded. It is <strong>pending review</strong>, and you will receive an update within 24 hours.</p>
+    {{/if}}
+
+    <p>Best regards,<br>House-dey Team</p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
+    <p>This is an automated message, please do not reply to this email.</p>
+  </div>
+</body>
+</html>

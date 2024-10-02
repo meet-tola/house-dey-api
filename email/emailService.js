@@ -6,6 +6,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Register Handlebars "eq" helper for conditional checks
+handlebars.registerHelper('eq', function (a, b) {
+  return a === b;
+});
+
 const readHTMLFile = (filePath) => {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, { encoding: "utf-8" }, (err, html) => {
@@ -19,16 +24,17 @@ const readHTMLFile = (filePath) => {
 };
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
-const FRONTEND_URL = process.env.NODE_ENV === "production"
-  ? process.env.HOSTED_URL
-  : "http://localhost:3000";
+const FRONTEND_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.HOSTED_URL
+    : "http://localhost:3000";
 
 // Helper function to compile the Handlebars template
 const compileTemplate = async (templatePath, data) => {
@@ -37,15 +43,22 @@ const compileTemplate = async (templatePath, data) => {
   return compiledTemplate(data);
 };
 
-export const sendVerificationEmail = async (email, username, verificationToken) => {
+export const sendVerificationEmail = async (
+  email,
+  username,
+  verificationToken
+) => {
   const templatePath = path.resolve("email", "verificationEmail.html");
 
-  const htmlContent = await compileTemplate(templatePath, { username, verificationToken });
+  const htmlContent = await compileTemplate(templatePath, {
+    username,
+    verificationToken,
+  });
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Verify your email',
+    subject: "Verify your email",
     html: htmlContent,
   };
 
@@ -56,12 +69,15 @@ export const sendResetPasswordEmail = async (email, username, resetToken) => {
   const templatePath = path.resolve("email", "resetPasswordEmail.html");
   const resetLink = `${FRONTEND_URL}/reset-password/${resetToken}`;
 
-  const htmlContent = await compileTemplate(templatePath, { username, resetLink });
+  const htmlContent = await compileTemplate(templatePath, {
+    username,
+    resetLink,
+  });
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Reset your password',
+    subject: "Reset your password",
     html: htmlContent,
   };
 
@@ -69,14 +85,43 @@ export const sendResetPasswordEmail = async (email, username, resetToken) => {
 };
 
 export const sendIDVerificationEmail = async (email, username) => {
-  const templatePath = path.resolve("email", "IDverification.html");
+  const templatePath = path.resolve("email", "IDVerification.html");
 
   const htmlContent = await compileTemplate(templatePath, { username });
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'ID Verification Uploaded',
+    subject: "ID Verification Uploaded",
+    html: htmlContent,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+export const sendIDStatusEmail = async (
+  email,
+  username,
+  verificationStatus
+) => {
+  const templatePath = path.resolve("email", "IDVerificationStatus.html");
+
+  const htmlContent = await compileTemplate(templatePath, {
+    username,
+    verificationStatus,
+  });
+
+  const subject =
+    verificationStatus === "approved"
+      ? "ID Verification Approved"
+      : verificationStatus === "rejected"
+      ? "ID Verification Rejected"
+      : "ID Verification Pending Review";
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject,
     html: htmlContent,
   };
 
