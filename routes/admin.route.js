@@ -8,8 +8,8 @@ import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-router.get("/agents", verifyToken, getAllAgents);
-router.get("/user/:id", verifyToken, getSpecificUser);
-router.put("/verification/:id", verifyToken, updateAgentVerificationStatus);
+router.get("/agents", getAllAgents);
+router.get("/user/:id", getSpecificUser);
+router.put("/verification/:id", updateAgentVerificationStatus);
 
 export default router;
