@@ -1,6 +1,38 @@
 import prisma from "../lib/prisma.js";
 import { sendIDStatusEmail } from "../email/emailService.js";
 import axios from "axios";
+import { findAdminByEmail } from "../adminModel/model.js"; // Import the in-memory model
+import jwt from "jsonwebtoken";
+
+export const loginAdmin = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Find the admin by email from in-memory storage
+    const admin = findAdminByEmail(email);
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    if (!password) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Generate a JWT token
+    const token = jwt.sign(
+      { id: admin.id, role: admin.role }, 
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "1h" } 
+    );
+
+    // Return the token to the client
+    res.status(200).json({ message: "Login successful", token });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 export const getAllAgents = async (req, res) => {
   try {
@@ -12,7 +44,7 @@ export const getAllAgents = async (req, res) => {
         id: true,
         fullName: true,
         email: true,
-        verificationStatus: true, 
+        verificationStatus: true,
       },
     });
 
@@ -83,20 +115,27 @@ export const updateAgentVerificationStatus = async (req, res) => {
       },
     });
 
-    await sendIDStatusEmail(updatedUser.email, updatedUser.username, verificationStatus);
+    await sendIDStatusEmail(
+      updatedUser.email,
+      updatedUser.username,
+      verificationStatus
+    );
 
-    let notificationMessage = '';
-    let notificationDescription = '';
+    let notificationMessage = "";
+    let notificationDescription = "";
 
-    if (verificationStatus === 'approved') {
+    if (verificationStatus === "approved") {
       notificationMessage = "ID Verification Approved";
-      notificationDescription = "Congratulations! Your ID verification has been successfully approved.";
-    } else if (verificationStatus === 'rejected') {
+      notificationDescription =
+        "Congratulations! Your ID verification has been successfully approved.";
+    } else if (verificationStatus === "rejected") {
       notificationMessage = "ID Verification Rejected";
-      notificationDescription = "Unfortunately, your ID verification was rejected. Please check the submission details and re-upload the correct document.";
-    } else if (verificationStatus === 'pending') {
+      notificationDescription =
+        "Unfortunately, your ID verification was rejected. Please check the submission details and re-upload the correct document.";
+    } else if (verificationStatus === "pending") {
       notificationMessage = "ID Verification Pending";
-      notificationDescription = "Your ID verification document has been uploaded and is pending review. You will receive an update within 24 hours.";
+      notificationDescription =
+        "Your ID verification document has been uploaded and is pending review. You will receive an update within 24 hours.";
     }
 
     const notification = {

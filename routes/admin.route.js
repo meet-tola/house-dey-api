@@ -1,15 +1,18 @@
 import express from "express";
 import {
+  loginAdmin,
   getAllAgents,
   getSpecificUser,
   updateAgentVerificationStatus,
 } from "../controllers/admin.controller.js";
-import { verifyToken } from "../middleware/verifyToken.js";
+import { adminToken } from "../middleware/adminToken.js";
 
 const router = express.Router();
 
-router.get("/agents", getAllAgents);
-router.get("/user/:id", getSpecificUser);
-router.put("/verification/:id", updateAgentVerificationStatus);
+router.post("/login", loginAdmin);
+
+router.get("/agents", adminToken, getAllAgents);
+router.get("/user/:id", adminToken, getSpecificUser);
+router.put("/verification/:id", adminToken, updateAgentVerificationStatus);
 
 export default router;
