@@ -1,6 +1,8 @@
 import prisma from "../lib/prisma.js";
 import jwt from "jsonwebtoken";
-import axios from 'axios';
+import axios from "axios";
+import { sendRequestEmail } from "../email/emailService.js";
+
 export const getPosts = async (req, res) => {
   const query = req.query;
 
@@ -195,17 +197,19 @@ export const addPost = async (req, res) => {
     if (requestId) {
       const request = await prisma.request.findUnique({
         where: { id: requestId },
-        select: { userId: true }, 
+        select: { userId: true },
       });
 
       if (request) {
+        await sendRequestEmail(user.email, user.username, newPost.id);
+
         const notification = {
           message: `New listing for your request: ${newPost.title}`,
           description:
             "The house properties you were looking for is now available. Click on the notification to view.",
           type: "listing",
           userId: request.userId,
-          postId: newPost.id, 
+          postId: newPost.id,
         };
 
         await prisma.notification.create({
@@ -219,7 +223,7 @@ export const addPost = async (req, res) => {
 
         await axios.post(`${backendURL}/emitNotification`, {
           userId: request.userId,
-          notification, 
+          notification,
         });
       }
     }
@@ -230,7 +234,6 @@ export const addPost = async (req, res) => {
     res.status(500).json({ message: "Failed to create post" });
   }
 };
-
 
 export const updatePost = async (req, res) => {
   const id = req.params.id;

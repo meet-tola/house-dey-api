@@ -128,4 +128,25 @@ export const sendIDStatusEmail = async (
   await transporter.sendMail(mailOptions);
 };
 
+export const sendRequestEmail = async (email, username, postId) => {
+  const templatePath = path.resolve("email", "newPostNotification.html");
+  const propertyLink = `${FRONTEND_URL}/properties/${postId}`; 
+
+  const htmlContent = await compileTemplate(templatePath, {
+    username,
+    propertyLink, 
+  });
+
+  const emails = [email, "wasiusikiru7@gmail.com", "backup.chisom@gmail.com"];
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: emails,
+    subject: "New Property Listed!", 
+    html: htmlContent,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 export default transporter;
