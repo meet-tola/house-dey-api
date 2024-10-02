@@ -68,4 +68,19 @@ export const sendResetPasswordEmail = async (email, username, resetToken) => {
   await transporter.sendMail(mailOptions);
 };
 
+export const sendIDVerificationEmail = async (email, username) => {
+  const templatePath = path.resolve("email", "IDverification.html");
+
+  const htmlContent = await compileTemplate(templatePath, { username });
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'ID Verification Uploaded',
+    html: htmlContent,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 export default transporter;

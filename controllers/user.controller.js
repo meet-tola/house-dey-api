@@ -1,6 +1,7 @@
 import prisma from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 import axios from "axios";
+import { sendIDVerificationEmail } from "../email/emailService.js";
 
 export const getUsers = async (req, res) => {
   try {
@@ -132,7 +133,7 @@ export const getUserWithRoleAgent = async (req, res) => {
 
 export const getAgentWithPosts = async (req, res) => {
   const tokenUserId = req.userId;
-  const agentUsername = req.params.username; 
+  const agentUsername = req.params.username;
 
   try {
     const tokenUser = await prisma.user.findUnique({
@@ -209,29 +210,29 @@ export const verifyAgentId = async (req, res) => {
       data: verificationData,
     });
 
-    if (user.role === "AGENT") {
-      const notification = {
-        message: "Pending ID Verification",
-        description:
-          "You have successfully upload a docmuent, you will recieved a message before 24hours.",
-        type: "id",
-        userId: user.id,
-      };
+    const notification = {
+      message: "ID Verification Uploaded",
+      description:
+        "Your ID verification document has been successfully uploaded. It is pending review and you will receive an update within 24 hours.",
+      type: "id",
+      userId: user.id,
+    };
 
-      await prisma.notification.create({
-        data: notification,
-      });
+    await sendIDVerificationEmail(updatedUser.email, updatedUser.username);
 
-      const backendURL =
-        process.env.NODE_ENV === "production"
-          ? process.env.NOTIFICATION_SOCKET_URL
-          : "http://localhost:4000";
+    await prisma.notification.create({
+      data: notification,
+    });
 
-      await axios.post(`${backendURL}/emitNotification`, {
-        userId: user.id,
-        notification,
-      });
-    }
+    const backendURL =
+      process.env.NODE_ENV === "production"
+        ? process.env.NOTIFICATION_SOCKET_URL
+        : "http://localhost:4000";
+
+    await axios.post(`${backendURL}/emitNotification`, {
+      userId: user.id,
+      notification,
+    });
 
     res.status(200).json({
       message: "Agent ID verification is pending",
@@ -242,4 +243,3 @@ export const verifyAgentId = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
