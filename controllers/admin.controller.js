@@ -21,9 +21,9 @@ export const loginAdmin = async (req, res) => {
 
     // Generate a JWT token
     const token = jwt.sign(
-      { id: admin.id, role: admin.role }, 
+      { id: admin.id, role: admin.role },
       process.env.JWT_SECRET_KEY,
-      { expiresIn: "1h" } 
+      { expiresIn: "1h" }
     );
 
     // Return the token to the client
@@ -123,25 +123,29 @@ export const updateAgentVerificationStatus = async (req, res) => {
 
     let notificationMessage = "";
     let notificationDescription = "";
+    let type = "";
 
     if (verificationStatus === "approved") {
       notificationMessage = "ID Verification Approved";
       notificationDescription =
         "Congratulations! Your ID verification has been successfully approved.";
+      type = "success";
     } else if (verificationStatus === "rejected") {
       notificationMessage = "ID Verification Rejected";
       notificationDescription =
         "Unfortunately, your ID verification was rejected. Please check the submission details and re-upload the correct document.";
+      type = "success";
     } else if (verificationStatus === "pending") {
       notificationMessage = "ID Verification Pending";
       notificationDescription =
         "Your ID verification document has been uploaded and is pending review. You will receive an update within 24 hours.";
+      type = "default";
     }
 
     const notification = {
       message: notificationMessage,
       description: notificationDescription,
-      type: "id",
+      type: type,
       userId: user.id,
     };
 
