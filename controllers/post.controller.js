@@ -194,7 +194,7 @@ export const addPost = async (req, res) => {
       },
     });
 
-    if (requestId) {
+    if (requestId && requestId !== "null") {
       const request = await prisma.request.findUnique({
         where: { id: requestId },
         select: { userId: true },
@@ -238,8 +238,21 @@ export const addPost = async (req, res) => {
 export const updatePost = async (req, res) => {
   const id = req.params.id;
   const tokenUserId = req.userId;
+  const body = req.body;
 
   try {
+    const postToUpdate = await prisma.post.findUnique({
+      where: { id },
+    });
+
+    if (!postToUpdate) {
+      return res.status(404).json({ message: "Post not found!" });
+    }
+
+    if (postToUpdate.userId !== tokenUserId) {
+      return res.status(403).json({ message: "Not Authorized!" });
+    }
+
     const updatedPost = await prisma.post.update({
       where: { id },
       data: {
@@ -249,13 +262,6 @@ export const updatePost = async (req, res) => {
         },
       },
     });
-    if (!updatedPost) {
-      return res.status(404).json({ message: "Post not found!" });
-    }
-
-    if (updatedPost.userId !== tokenUserId) {
-      return res.status(403).json({ message: "Not Authorised!" });
-    }
 
     res.status(200).json(updatedPost);
   } catch (err) {

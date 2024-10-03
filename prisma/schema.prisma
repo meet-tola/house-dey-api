@@ -63,8 +63,8 @@ model Post {
   address       String
   role          Role           @default(AGENT)
   city          String
-  bedroom       Int
-  bathroom      Int
+  bedroom       Int?
+  bathroom      Int?
   type          Type
   property      Property
   createdAt     DateTime       @default(now())
