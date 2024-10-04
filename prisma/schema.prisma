@@ -144,7 +144,7 @@ model RequestDetail {
   comment   String?
   state     String?
   city      String?
-  bedroom   String?
+  bedroom   Int?
   request   Request @relation(fields: [requestId], references: [id])
   requestId String  @unique @db.ObjectId
 }
