@@ -56,7 +56,7 @@ export const updateUser = async (req, res) => {
       data: {
         ...inputs,
         ...(updatedPassword && { password: updatedPassword }),
-        ...(avatar && { avatar }),
+        avatar: avatar !== undefined ? avatar : undefined,
         ...(fullName && { fullName }),
         ...(mobile && { mobile }),
         ...(street && { street }),
