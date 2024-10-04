@@ -1,58 +1,45 @@
 import prisma from "../lib/prisma.js";
 
 export const getRequests = async (req, res) => {
-  const { searchQuery, city, state, minBudget, maxBudget, type, property } = req.query;
+  const { city, state, minBudget, maxBudget, type, property } = req.query;
 
   try {
     const requests = await prisma.request.findMany({
       where: {
-        OR: searchQuery
-          ? [
-              {
-                address: {
-                  contains: searchQuery,
-                  mode: "insensitive",
+        AND: [
+          city
+            ? {
+                requestDetail: {
+                  city: {
+                    contains: city,
+                    mode: "insensitive",
+                  },
                 },
-              },
-              {
-                city: {
-                  contains: searchQuery,
-                  mode: "insensitive",
+              }
+            : {},
+          state
+            ? {
+                requestDetail: {
+                  state: {
+                    contains: state,
+                    mode: "insensitive",
+                  },
                 },
-              },
-              {
-                state: {
-                  contains: searchQuery,
-                  mode: "insensitive",
+              }
+            : {},
+          minBudget || maxBudget
+            ? {
+                budget: {
+                  gte: minBudget ? parseFloat(minBudget) : undefined,
+                  lte: maxBudget ? parseFloat(maxBudget) : undefined,
                 },
-              },
-              {
-                type: {
-                  contains: searchQuery,
-                  mode: "insensitive",
-                },
-              },
-            ]
-          : undefined,
-        city: city
-          ? {
-              contains: city,
-              mode: "insensitive",
-            }
-          : undefined,
-        state: state
-          ? {
-              contains: state,
-              mode: "insensitive",
-            }
-          : undefined,
-        budget: {
-          gte: minBudget ? parseFloat(minBudget) : undefined,
-          lte: maxBudget ? parseFloat(maxBudget) : undefined,
-        },
-        type: type ? { equals: type } : undefined,
-        property: property ? { equals: property } : undefined,
+              }
+            : {},
+          type ? { type: { equals: type } } : {},
+          property ? { property: { equals: property } } : {},
+        ],
       },
+      distinct: ['id'],
       include: {
         requestDetail: true,
         user: {
