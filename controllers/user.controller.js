@@ -84,30 +84,6 @@ export const deleteUser = async (req, res) => {
   }
 
   try {
-    await prisma.notification.deleteMany({
-      where: { userId: id },
-    });
-    
-    await prisma.post.deleteMany({
-      where: { userId: id },
-    });
-
-    await prisma.savedPost.deleteMany({
-      where: { userId: id },
-    });
-
-    await prisma.request.deleteMany({
-      where: { userId: id },
-    });
-
-    await prisma.chat.deleteMany({
-      where: { userIDs: { has: id } },
-    });
-
-    await prisma.review.deleteMany({
-      where: { userId: id },
-    });
-    
     await prisma.user.delete({
       where: { id },
     });
@@ -118,6 +94,7 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: "Failed to delete user!" });
   }
 };
+
 
 export const getUserWithRoleAgent = async (req, res) => {
   const tokenUserId = req.userId;
