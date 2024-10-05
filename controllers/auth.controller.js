@@ -159,9 +159,8 @@ export const login = async (req, res) => {
     if (!isPasswordValid)
       return res.status(401).json({ message: "Invalid Credentials" });
 
-    const age = 1000 * 60 * 60 * 24 * 7;
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: age,
+      expiresIn: "7d",
     });
 
     const cookieOptions = {
