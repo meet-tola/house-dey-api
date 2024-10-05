@@ -91,6 +91,18 @@ export const deleteUser = async (req, res) => {
     await prisma.post.deleteMany({
       where: { userId: id },
     });
+
+    await prisma.savedPost.deleteMany({
+      where: { userId: id },
+    });
+
+    await prisma.chat.deleteMany({
+      where: { userId: id },
+    });
+
+    await prisma.review.deleteMany({
+      where: { userId: id },
+    });
     
     await prisma.user.delete({
       where: { id },
