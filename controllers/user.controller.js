@@ -87,14 +87,19 @@ export const deleteUser = async (req, res) => {
     await prisma.notification.deleteMany({
       where: { userId: id },
     });
-
+    
+    await prisma.post.deleteMany({
+      where: { userId: id },
+    });
+    
     await prisma.user.delete({
       where: { id },
     });
+
     res.status(200).json({ message: "User deleted" });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: "Failed to delete users!" });
+    res.status(500).json({ message: "Failed to delete user!" });
   }
 };
 
