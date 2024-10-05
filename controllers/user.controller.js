@@ -97,7 +97,7 @@ export const deleteUser = async (req, res) => {
     });
 
     await prisma.chat.deleteMany({
-      where: { userId: id },
+      where: { userIDs: { has: id } },
     });
 
     await prisma.review.deleteMany({
