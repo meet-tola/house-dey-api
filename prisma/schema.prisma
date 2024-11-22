@@ -124,6 +124,7 @@ model Message {
   userId    String
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
   chatId    String   @db.ObjectId
+  postId    String?  @db.ObjectId
   createdAt DateTime @default(now())
 }
 
